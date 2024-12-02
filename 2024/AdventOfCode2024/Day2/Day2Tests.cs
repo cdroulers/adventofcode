@@ -4,7 +4,7 @@ namespace AdventOfCode2024.Day2;
 
 public class Day2Tests
 {
-    public static bool IsSafe(int[] numbers)
+    public static bool IsSafe(int[] numbers, bool isFirstError = false)
     {
         if (numbers.Length == 0)
         {
@@ -15,45 +15,52 @@ public class Day2Tests
         {
             return true;
         }
-        
+
         int last = numbers[0];
         var isAscending = last < numbers[1];
+        var idx = 0;
         foreach (var number in numbers.Skip(1))
         {
-            if (last == number)
+            if ((isAscending && number <= last)
+                || (!isAscending && number >= last)
+                || (Math.Abs(number - last) > 3))
             {
-                return false;
-            }
+                if (!isFirstError)
+                {
+                    return IsSafeWithOneLevelRemoved(numbers);
+                }
 
-            if (isAscending && number < last)
-            {
-                return false;
-            }
-
-            if (!isAscending && number > last)
-            {
-                return false;
-            }
-
-            if (Math.Abs(number - last) > 3)
-            {
                 return false;
             }
 
             last = number;
+            idx++;
         }
 
         return true;
     }
-    
+
+    private static bool IsSafeWithOneLevelRemoved(int[] numbers)
+    {
+        for (var i = 0; i < numbers.Length; i++)
+        {
+            var wot = numbers.ToList();
+            wot.RemoveAt(i);
+            if (IsSafe(wot.ToArray(), isFirstError: true))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     [Theory]
-    [InlineData(true, 1, 2, 3)]
-    [InlineData(true, 3, 2, 1)]
     [InlineData(true, 7, 6, 4, 2, 1)]
     [InlineData(false, 1, 2, 7, 8, 9)]
     [InlineData(false, 9, 7, 6, 2, 1)]
-    [InlineData(false, 1, 3, 2, 4, 5)]
-    [InlineData(false, 8, 6, 4, 4, 1)]
+    [InlineData(true, 1, 3, 2, 4, 5)]
+    [InlineData(true, 8, 6, 4, 4, 1)]
     [InlineData(true, 1, 3, 6, 7, 9)]
     public void IsSafeTest(bool isSafe, params int[] numbers)
     {
@@ -66,6 +73,6 @@ public class Day2Tests
         var contents = File.ReadAllText("./Day2/Day2.txt");
         var lines = contents.Split(Environment.NewLine).Select(x => x.Split(" ").Select(int.Parse).ToArray()).ToArray();
         var total = lines.Count(x => IsSafe(x));
-        total.Should().Be(321);
+        total.Should().Be(386);
     }
 }
