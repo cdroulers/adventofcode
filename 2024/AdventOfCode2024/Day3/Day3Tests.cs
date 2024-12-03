@@ -5,15 +5,28 @@ namespace AdventOfCode2024.Day3;
 
 public class Day3Tests
 {
-    private static readonly Regex Regex = new Regex(@"mul\((\d{1,3}),(\d{1,3})\)", RegexOptions.Compiled | RegexOptions.Multiline);
-    
+    private static readonly Regex Regex = new Regex(@"mul\((\d{1,3}),(\d{1,3})\)|do\(\)|don't\(\)",
+        RegexOptions.Compiled | RegexOptions.Multiline);
+
     public static int ScanMemory(string mem)
     {
         var matches = Regex.Matches(mem);
+        bool enabled = true;
         var total = 0;
         foreach (Match match in matches)
         {
-            total += Multiply(match);
+            if (match.Value == "do()")
+            {
+                enabled = true;
+            }
+            else if (match.Value == "don't()")
+            {
+                enabled = false;
+            }
+            else if (enabled)
+            {
+                total += Multiply(match);
+            }
         }
 
         return total;
@@ -25,11 +38,12 @@ public class Day3Tests
         var n2 = int.Parse(match.Groups[2].Value);
         return n1 * n2;
     }
-    
+
     [Theory]
     [InlineData("mul(44,46)", 2024)]
     [InlineData("mul(44,46),mul(1,2)", 2026)]
     [InlineData("xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))", 161)]
+    [InlineData("xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))", 48)]
     public void ScanMemoryTest(string mem, int expected)
     {
         var actual = ScanMemory(mem);
@@ -41,6 +55,6 @@ public class Day3Tests
     {
         var contents = File.ReadAllText("./Day3/Day3.txt");
         var total = ScanMemory(contents);
-        total.Should().Be(188192787);
+        total.Should().Be(113965544);
     }
 }
