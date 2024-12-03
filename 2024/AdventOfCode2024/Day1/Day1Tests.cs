@@ -17,11 +17,30 @@ public class Day1Tests
         return total;
     }
 
+    public static int SimilaryScore(List<int> first, List<int> second)
+    {
+        var instances = second.GroupBy(x => x).ToDictionary(x => x.Key, x => x.Count());
+        var total = 0;
+        foreach (var n in first)
+        {
+            total += n * (instances.TryGetValue(n, out var i) ? i : 0);
+        }
+
+        return total;
+    }
+
     [Fact]
     public void DistanceTest()
     {
         var actual = Distance([3, 4, 2, 1, 3, 3], [4, 3, 5, 3, 9, 3]);
         actual.Should().Be(11);
+    }
+
+    [Fact]
+    public void SimilaryScoreTest()
+    {
+        var actual = SimilaryScore([3, 4, 2, 1, 3, 3], [4, 3, 5, 3, 9, 3]);
+        actual.Should().Be(31);
     }
 
     [Fact]
@@ -33,7 +52,10 @@ public class Day1Tests
         var lines = contents
             .Split(Environment.NewLine)
             .Select(x =>
-                x.Split("   ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                x.Split(
+                        "   ",
+                        StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+                    )
                     .Select(int.Parse)
                     .ToArray()
             )
@@ -45,5 +67,8 @@ public class Day1Tests
         });
         var total = Distance(first, second);
         total.Should().Be(2904518);
+        
+        var similaryScore = SimilaryScore(first, second);
+        similaryScore.Should().Be(18650129);
     }
 }
