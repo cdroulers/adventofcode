@@ -10,47 +10,54 @@ public class Day5Tests
     {
         int total = 0;
 
-        var sections = input.Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var sections = input.Replace("\r\n", "\n").Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var rules = sections[0]
             .Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(x => x.Split("|"))
             .Select(x => new Rule(int.Parse(x[0]), int.Parse(x[1])))
-            .ToArray();
+            .ToList();
         var pages = sections[1]
             .Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(x => x.Split(",").Select(int.Parse).ToArray())
-            .ToArray();
+            .Select(x => x.Split(",").Select(int.Parse).ToList())
+            .ToList();
 
         foreach (var page in pages)
         {
-            if (IsValid(rules, page))
+            var closurePage = page;
+            if (!IsValid(rules, ref closurePage))
             {
-                total += page[page.Length / 2];
+                total += page[page.Count / 2];
             }
         }
 
         return total;
     }
 
-    private bool IsValid(Rule[] rules, int[] page)
+    private bool IsValid(List<Rule> rules, ref List<int> page)
     {
-        for (int i = 0; i < page.Length; i++)
+        for (int i = 0; i < page.Count; i++)
         {
             int n = page[i];
             foreach (var rule in rules)
             {
                 if (rule.Before == n)
                 {
-                    if (page.Take(i).Any(x => x == rule.After))
+                    var idx = page.IndexOf(rule.After, 0, i);
+                    if (idx >= 0)
                     {
+                        (page[i], page[idx]) = (page[idx], page[i]);
+                        IsValid(rules, ref page);
                         return false;
                     }
                 }
                 else if (rule.After == n)
                 {
-                    if (page.Skip(i + 1).Any(x => x == rule.Before))
+                    var idx = page.IndexOf(rule.Before, i + 1);
+                    if (idx >= 0)
                     {
-                        return false;
+                        (page[i], page[idx]) = (page[idx], page[i]);
+                         IsValid(rules, ref page);
+                         return false;
                     }
                 }
             }
@@ -69,7 +76,7 @@ public class Day5Tests
 53|61
 
 75,47,61
-97,61,53", 47)]
+97,61,53", 53)]
     [InlineData(@"
 47|53
 97|13
@@ -98,7 +105,7 @@ public class Day5Tests
 75,29,13
 75,97,47,61,53
 61,13,29
-97,13,75,29,47", 143)]
+97,13,75,29,47", 123)]
     public void PageOrderingRulesTest(string input, int expected)
     {
         var actual = PageOrderingRules(input);
@@ -111,6 +118,6 @@ public class Day5Tests
     {
         var contents = await File.ReadAllTextAsync("./Day5/Day5.txt");
         var total = PageOrderingRules(contents);
-        total.Should().Be(5588);
+        total.Should().Be(5331);
     }
 }
