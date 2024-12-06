@@ -111,6 +111,6 @@ public class Day5Tests
     {
         var contents = await File.ReadAllTextAsync("./Day5/Day5.txt");
         var total = PageOrderingRules(contents);
-        total.Should().Be(0);
+        total.Should().Be(5588);
     }
 }
