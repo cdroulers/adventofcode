@@ -35,15 +35,17 @@ public class Day7Tests
         }
 
         return PossibleOperation(row, idx + 1, sum + row.Items[idx + 1])
-               || PossibleOperation(row, idx + 1, sum * row.Items[idx + 1]);
+               || PossibleOperation(row, idx + 1, sum * row.Items[idx + 1])
+               || PossibleOperation(row, idx + 1, long.Parse(sum.ToString() + row.Items[idx + 1].ToString()));
     }
 
     [Theory]
     [InlineData(
         @"
 190: 10 19
-3267: 81 40 27",
-        3457
+3267: 81 40 27
+156: 15 6",
+        3613
     )]
     [InlineData(
         @"
@@ -56,7 +58,7 @@ public class Day7Tests
 192: 17 8 14
 21037: 9 7 18 13
 292: 11 6 16 20",
-        3749
+        11387
     )]
     public void PossibleOperationsTest(string input, long expected)
     {
@@ -69,6 +71,6 @@ public class Day7Tests
     {
         var contents = await File.ReadAllTextAsync("./Day7/Day7.txt");
         var total = PossibleOperations(contents);
-        total.Should().Be(8401132154762L);
+        total.Should().Be(95297119227552L);
     }
 }
