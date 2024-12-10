@@ -5,9 +5,10 @@ namespace AdventOfCode2024.Day10;
 
 public class Day10Tests
 {
-    public int TrailScore(string input)
+    public (int Score, int Rating) TrailScore(string input)
     {
-        var total = 0;
+        var totalScore = 0;
+        var totalRating = 0;
         var grid = input
             .Replace("\r\n", "\n")
             .Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
@@ -21,12 +22,13 @@ public class Day10Tests
                 var p = new Point(x, y);
                 if (grid[x][y] == 0)
                 {
-                    total += Trailends(grid, p).Distinct().Count();
+                    totalScore += Trailends(grid, p).Distinct().Count();
+                    totalRating += TrailRatings(grid, p).Distinct().Count();
                 }
             }
         }
         
-        return total;
+        return (totalScore, totalRating);
     }
 
     private static readonly Point[] Directions = { new(-1, 0), new(0, 1), new(1, 0), new(0, -1) };
@@ -52,6 +54,31 @@ public class Day10Tests
 
         return trailends;
     }
+    
+    private List<List<Point>> TrailRatings(List<List<int>> grid, Point trailhead, int idx = 0, List<Point>? current = null)
+    {
+        var trails = new List<List<Point>>();
+        current ??= new List<Point>();
+        foreach (var direction in Directions)
+        {
+            var p = new Point(trailhead.X + direction.X, trailhead.Y + direction.Y);
+            if (IsInBounds(p, grid) && grid[p.X][p.Y] == idx + 1)
+            {
+                current.Add(p);
+                if (idx + 1 == 9)
+                {
+                    trails.Add(current);
+                    current = new List<Point>();
+                }
+                else
+                {
+                    trails.AddRange( TrailRatings(grid, p, idx + 1, current.ToList()));
+                }
+            }
+        }
+
+        return trails.Distinct().ToList();
+    }
 
     private static bool IsInBounds(Point guardPos, List<List<int>> grid)
     {
@@ -66,7 +93,7 @@ public class Day10Tests
 0123
 1234
 8765
-9876", 1)]
+9876", 1, 16)]
     [InlineData(@"
 ...0...
 ...1...
@@ -74,7 +101,7 @@ public class Day10Tests
 6543456
 7.....7
 8.....8
-9.....9", 2)]
+9.....9", 2, 2)]
     [InlineData(@"
 ..90..9
 ...1.98
@@ -82,7 +109,7 @@ public class Day10Tests
 6543456
 765.987
 876....
-987....", 4)]
+987....", 4, 13)]
     [InlineData(@"
 10..9..
 2...8..
@@ -90,7 +117,7 @@ public class Day10Tests
 4567654
 ...8..3
 ...9..2
-.....01", 3)]
+.....01", 3, 3)]
     [InlineData(@"
 89010123
 78121874
@@ -99,11 +126,12 @@ public class Day10Tests
 45678903
 32019012
 01329801
-10456732", 36)]
-    public void TrailScoreTest(string input, int expected)
+10456732", 36, 81)]
+    public void TrailScoreTest(string input, int expectedScore, int expectedRating)
     {
         var total = TrailScore(input);
-        total.Should().Be(expected);
+        total.Score.Should().Be(expectedScore);
+        total.Rating.Should().Be(expectedRating);
     }
 
     [Fact]
@@ -111,6 +139,7 @@ public class Day10Tests
     {
         var contents = await File.ReadAllTextAsync("./Day10/Day10.txt");
         var total = TrailScore(contents);
-        total.Should().Be(717);
+        total.Score.Should().Be(717);
+        total.Rating.Should().Be(1686);
     }
 }
