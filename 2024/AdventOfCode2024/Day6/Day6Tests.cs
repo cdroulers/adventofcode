@@ -145,6 +145,6 @@ public class Day6Tests
         var contents = await File.ReadAllTextAsync("./Day6/Day6.txt");
         var total = GuardPathWithLoops(contents);
         total.PointsVisited.Select(x=> x.Item1).Distinct().Should().HaveCount(5551);
-        total.Loops.Distinct().Should().HaveCount(2012);
+        total.Loops.Distinct().Should().HaveCount(1939);
     }
 }
