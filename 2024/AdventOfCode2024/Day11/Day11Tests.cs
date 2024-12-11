@@ -4,41 +4,51 @@ namespace AdventOfCode2024.Day11;
 
 public class Day11Tests
 {
-    public int BlinkingStones(string input, int blinks)
+    public long BlinkingStones(string input, int blinks)
     {
-        var rocks = input.Split(" ").Select(long.Parse).ToList();
+        var rocks = input.Split(" ").Select(long.Parse).ToDictionary(l => l, l => (long)1);
 
         for (var i = 0; i < blinks; i++)
         {
-            BlinkOnce(ref rocks);
+            rocks = BlinkOnce(rocks);
         }
         
-        return rocks.Count;
+        return rocks.Sum(x => x.Value);
     }
     
-    private void BlinkOnce(ref List<long> rocks)
+    private Dictionary<long, long> BlinkOnce(Dictionary<long, long> rocks)
     {
-        for (var i = 0; i < rocks.Count; i++)
+        var newDict  = new Dictionary<long, long>();
+        foreach (var kv in rocks)
         {
-            var n = rocks[i];
-            var nAsString = n.ToString();
+            var n = kv.Key;
             if (n == 0)
             {
-                rocks[i] = 1;
+                newDict[1] = Add(newDict, 1, kv.Value);
+                continue;
             }
-            else if (nAsString.Length % 2 == 0)
+            
+            var nAsString = n.ToString();
+            if (nAsString.Length % 2 == 0)
             {
-                var n1 = nAsString.Substring(0, nAsString.Length / 2);
-                var n2 = nAsString.Substring(nAsString.Length / 2);
-                rocks[i] = long.Parse(n1);
-                rocks.Insert(i + 1, long.Parse(n2));
-                i++;
+                var n1 = long.Parse(nAsString.Substring(0, nAsString.Length / 2));
+                var n2 = long.Parse(nAsString.Substring(nAsString.Length / 2));
+                newDict[n1] = Add(newDict, n1, kv.Value);
+                newDict[n2] = Add(newDict, n2, kv.Value);
             }
             else
             {
-                rocks[i] = n * 2024;
+                var val = n * 2024;
+                newDict[val] = Add(newDict, val, kv.Value);
             }
         }
+
+        return newDict;
+    }
+
+    private long Add(Dictionary<long, long> rocks, long key, long value)
+    {
+        return rocks.ContainsKey(key) ? rocks[key] + value : value;
     }
 
     [Theory]
@@ -81,5 +91,13 @@ public class Day11Tests
         var contents = await File.ReadAllTextAsync("./Day11/Day11.txt");
         var total = BlinkingStones(contents, 25);
         total.Should().Be(183435);
+    }
+
+    [Fact]
+    public async Task FromFile75()
+    {
+        var contents = await File.ReadAllTextAsync("./Day11/Day11.txt");
+        var total = BlinkingStones(contents, 75);
+        total.Should().Be(218279375708592L);
     }
 }
