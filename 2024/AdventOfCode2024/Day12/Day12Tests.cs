@@ -34,7 +34,14 @@ public class Day12Tests
             }
         }
 
-        return areas.Sum(x => x.Value.Count * Perimeter(x.Value));
+        var total = 0;
+        foreach (var area in areas)
+        {
+            var nbOfSides = NumberOfSides(area.Value);
+            total += area.Value.Count * nbOfSides;
+        }
+
+        return total;
     }
 
     private static void BuildArea(List<List<char>> grid, List<Point> area, Point current, char c)
@@ -58,15 +65,28 @@ public class Day12Tests
                && guardPos.Y < grid[0].Count;
     }
 
-    private static int Perimeter(List<Point> area)
+    private static int NumberOfSides(List<Point> area)
     {
         var total = 0;
         foreach (var point in area)
         {
-            foreach (var direction in Directions)
+            // Goes around each letter and checks if it's a "corner" by checking for empty
+            // in 2 directions.
+            for (var i = 0; i < Directions.Length; i++)
             {
-                var p = new Point(point.X + direction.X, point.Y + direction.Y);
-                total += area.Contains(p) ? 0 : 1;
+                var dir1 = Directions[i];
+                var dir2 = Directions[i == Directions.Length - 1 ? 0 : i + 1];
+                if (!area.Contains(new Point(point.X + dir1.X, point.Y + dir1.Y))
+                    && !area.Contains(new Point(point.X + dir2.X, point.Y + dir2.Y)))
+                {
+                    total++;
+                }
+                else if (area.Contains(new Point(point.X + dir1.X, point.Y + dir1.Y))
+                    && area.Contains(new Point(point.X + dir2.X, point.Y + dir2.Y))
+                    && !area.Contains(new Point(point.X + dir1.X + dir2.X, point.Y + dir1.Y + dir2.Y)))
+                {
+                    total++;
+                }
             }
         }
 
@@ -80,7 +100,7 @@ AAAA
 BBCD
 BBCC
 EEEC",
-        140
+        80
     )]
     [InlineData(
         @"
@@ -89,7 +109,7 @@ OXOXO
 OOOOO
 OXOXO
 OOOOO",
-        772
+        436
     )]
     [InlineData(
         @"
@@ -103,7 +123,26 @@ VVIIICJJEE
 MIIIIIJJEE
 MIIISIJEEE
 MMMISSJEEE",
-        1930
+        1206
+    )]
+    [InlineData(
+        @"
+EEEEE
+EXXXX
+EEEEE
+EXXXX
+EEEEE",
+        236
+    )]
+    [InlineData(
+        @"
+AAAAAA
+AAABBA
+AAABBA
+ABBAAA
+ABBAAA
+AAAAAA",
+        368
     )]
     public void FencePriceTest(string input, int expected)
     {
@@ -117,6 +156,6 @@ MMMISSJEEE",
     {
         var contents = await File.ReadAllTextAsync("./Day12/Day12.txt");
         var total = FencePrice(contents);
-        total.Should().Be(1461752);
+        total.Should().Be(904114);
     }
 }
